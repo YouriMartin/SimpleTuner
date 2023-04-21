@@ -1,13 +1,10 @@
 import 'dart:core';
 
-import 'dart:developer' as developer;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_fft/flutter_fft.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
-
 
   final String title;
 
@@ -23,11 +20,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   FlutterFft flutterFft = FlutterFft();
 
+  _tuning() async {}
+
   _initialize() async {
     print("Starting recorder...");
-     print("Before");
-     bool hasPermission = await flutterFft.checkPermission();
-     print("After: " + hasPermission.toString());
+    print("Before");
+    bool hasPermission = await flutterFft.checkPermission();
+    print("After: " + hasPermission.toString());
 
     // Keep asking for mic permission until accepted
     while (!(await flutterFft.checkPermission())) {
@@ -35,26 +34,31 @@ class _MyHomePageState extends State<MyHomePage> {
       // IF DENY QUIT PROGRAM
     }
 
+    flutterFft.setTarget = 440.00;
+/*
+    flutterFft.setTuning = ["E3", "B2", "G2", "D2", "A1", "E1"];
+*/
+
     // await flutterFft.checkPermissions();
     await flutterFft.startRecorder();
     print("Recorder started...");
     setState(() => isRecording = flutterFft.getIsRecording);
 
     flutterFft.onRecorderStateChanged.listen(
-            (data) => {
-          print("Changed state, received: $data"),
-          setState(
+        (data) => {
+              print("Changed state, received: $data"),
+              setState(
                 () => {
-              frequency = data[1] as double,
-              note = data[2] as String,
-              octave = data[5] as int,
+                  frequency = data[1] as double,
+                  note = data[2] as String,
+                  octave = data[5] as int,
+                },
+              ),
+              flutterFft.setNote = note!,
+              flutterFft.setFrequency = frequency!,
+              flutterFft.setOctave = octave!,
+              print("Octave: ${octave!.toString()}")
             },
-          ),
-          flutterFft.setNote = note!,
-          flutterFft.setFrequency = frequency!,
-          flutterFft.setOctave = octave!,
-          print("Octave: ${octave!.toString()}")
-        },
         onError: (err) {
           print("Error: $err");
         },
@@ -85,12 +89,12 @@ class _MyHomePageState extends State<MyHomePage> {
               children: [
                 isRecording!
                     ? Text("Current note: ${note!},${octave!.toString()}",
-                    style: TextStyle(fontSize: 30))
+                        style: TextStyle(fontSize: 30))
                     : Text("Not Recording", style: TextStyle(fontSize: 35)),
                 isRecording!
                     ? Text(
-                    "Current frequency: ${frequency!.toStringAsFixed(2)}",
-                    style: TextStyle(fontSize: 30))
+                        "Current frequency: ${frequency!.toStringAsFixed(2)}",
+                        style: TextStyle(fontSize: 30))
                     : Text("Not Recording", style: TextStyle(fontSize: 35))
               ],
             ),
